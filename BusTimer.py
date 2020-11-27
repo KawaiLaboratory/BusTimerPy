@@ -158,7 +158,7 @@ class TimeTable():
                     self.tables[i].to_csv("csv/{}.csv".format(i))
 
         self.tables_str = [today.strftime('%Y/%m/%d')+"-"+table for table in self.tables]
-        self.tables_dt  = [table.astype("datetime64") for table in self.tables_str]
+        self.tables_dt  = [pd.DataFrame([[pd.to_datetime(col, format='%Y/%m/%d-%H:%M')  for col in row] for row in table.values]) for table in self.tables_str]
 
 class Color(enum.Enum):
     ORANGE = "#ffb400"
