@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[7]:
-
-
 import pandas as pd
 import datetime as dt
 import tkinter as tk
@@ -176,10 +173,3 @@ root = tk.Tk()
 app = Application(root)
 
 app.mainloop()
-
-
-# In[ ]:
-
-
-
-
