@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# In[ ]:
+
+
 import pandas   as pd
 import datetime as dt
 import tkinter  as tk
 import threading
 import enum
 import sys
+
 
 class Application(tk.Frame):
     def __init__(self, master = None):
@@ -81,19 +85,19 @@ class Application(tk.Frame):
             self.status = num
             self.update_disp()
         return inner
-
+    
     def time2str(self, time):
         if(self.anm_status):
             msg = "{}:{}".format(str(time)[0:2], str(time)[2:4])
         else:
             msg = "{} {}".format(str(time)[0:2], str(time)[2:4])
-
+        
         return msg
-
+    
     def coming_soon(self, time, now, delta):
         m = now%100
         h = int(now/100)
-
+        
         if(m+delta >= 60):
             over = int((m+delta)/60)
             m = m+delta-60
@@ -101,10 +105,10 @@ class Application(tk.Frame):
         else:
             m = m+delta
             h = h
-
+        
         added_time = h*100+m
         return added_time>time
-
+            
 
     def update_disp(self):
         self.now = int(dt.datetime.now().strftime("%H%M"))
@@ -115,7 +119,7 @@ class Application(tk.Frame):
         come_msg = "まもなく到着します"
         go_msg = "まもなく出発します"
         margin = 34
-
+        
         if(len(self.tablelist_come) > 0):
             nxt_come = self.tablelist_come[0]
             self.l4["text"] = self.time2str(nxt_come)
@@ -131,7 +135,7 @@ class Application(tk.Frame):
             self.l4["text"] = "--:--"
             self.l32["text"] = ""
             self.disp_come_msg = 0
-
+            
         if(len(self.tablelist_go) == 0):
             self.l21["text"] = "サヨナラ！"
             self.l22["text"] = "アバーッ！"
@@ -149,7 +153,7 @@ class Application(tk.Frame):
             else:
                 self.l21["text"] = self.time2str(self.tablelist_go[0])
                 self.l22["text"] = self.time2str(self.tablelist_go[1])
-
+                
             if(self.disp_go_msg >= margin):
                 self.disp_go_msg = 0
             else:
@@ -169,7 +173,7 @@ class TimeTable():
         self.URL     = 'https://www.kanazawa-it.ac.jp/about_kit/yatsukaho.html'
         self.COME74 = 1
         self.GO74   = 6
-
+        
         self.tables = []
         self.val74come_str = []
         self.val74come_int = []
@@ -181,10 +185,12 @@ class TimeTable():
         except Exception as e:
             for i in range(4):
                 self.tables.append(pd.read_csv("csv/{}.csv".format(i), index_col=0))
+                print("read csv")
         else:
             if(len(self.tables) == 4):
                 for i in range(len(self.tables)):
                     self.tables[i].to_csv("csv/{}.csv".format(i))
+            print("read html")
 
         self.val74come_str = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.COME74]] for table in self.tables]
         self.val74go_str   = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.GO74]]   for table in self.tables]
@@ -204,4 +210,10 @@ root = tk.Tk()
 app = Application(root)
 
 app.mainloop()
+
+
+# In[ ]:
+
+
+
 
