@@ -7,6 +7,7 @@ import tkinter  as tk
 import threading
 import enum
 import sys
+import time
 
 class Application(tk.Frame):
     def __init__(self, master = None):
@@ -59,13 +60,13 @@ class Application(tk.Frame):
         self.f5 = tk.Frame(master, width=1280, height=82)
         self.f5.pack()
         self.f5.pack_propagate(0)
-        self.b1 = tk.Button(self.f5, text="平日", font=("GN-キルゴUかなO",20), command=self.btn_changed(0))
+        self.b1 = tk.Button(self.f5, text="平日", font=("GN-キルゴUかなO",20), command=self.btn_changed(0), height=82)
         self.b1.pack(fill=tk.BOTH, expand=True, side="left")
-        self.b2 = tk.Button(self.f5, text="土日", font=("GN-キルゴUかなO",20), command=self.btn_changed(1))
+        self.b2 = tk.Button(self.f5, text="土日", font=("GN-キルゴUかなO",20), command=self.btn_changed(1), height=82)
         self.b2.pack(fill=tk.BOTH, expand=True, side="left")
-        self.b3 = tk.Button(self.f5, text="春夏平日", font=("GN-キルゴUかなO",20), command=self.btn_changed(2))
+        self.b3 = tk.Button(self.f5, text="春夏平日", font=("GN-キルゴUかなO",20), command=self.btn_changed(2), height=82)
         self.b3.pack(fill=tk.BOTH, expand=True, side="left")
-        self.b4 = tk.Button(self.f5, text="春夏土日", font=("GN-キルゴUかなO",20), command=self.btn_changed(3))
+        self.b4 = tk.Button(self.f5, text="春夏土日", font=("GN-キルゴUかなO",20), command=self.btn_changed(3), height=82)
         self.b4.pack(fill=tk.BOTH, expand=True, side="left")
 
         self.start_timer()
@@ -114,10 +115,11 @@ class Application(tk.Frame):
         go_msg = "まもなく出発します"
         margin = 34
 
+        time.sleep(0.2)
+
         if(len(self.tablelist_come) > 0):
-            nxt_come = self.tablelist_come[0]
-            self.l4["text"] = self.time2str(nxt_come)
-            if(self.coming_soon(nxt_come, self.now, 5)):
+            self.l4["text"] = self.time2str(self.tablelist_come[0])
+            if(self.coming_soon(self.tablelist_come[0], self.now, 5)):
                 self.l32["text"] = " "*(margin-self.disp_come_msg)+come_msg+" "*self.disp_come_msg
                 if(self.disp_come_msg >= margin):
                     self.disp_come_msg = 0
@@ -136,7 +138,7 @@ class Application(tk.Frame):
             self.l12["text"] = ""
             self.disp_go_msg = 0
         else:
-            if(self.coming_soon(nxt_come, self.now, 10)):
+            if(self.coming_soon(self.tablelist_come[0], self.now, 10)):
                 self.l12["text"] = " "*(margin-self.disp_go_msg)+go_msg+" "*self.disp_go_msg
             else:
                 self.l12["text"] = ""
@@ -179,7 +181,6 @@ class TimeTable():
         except Exception as e:
             for i in range(4):
                 self.tables.append(pd.read_csv("csv/{}.csv".format(i), index_col=0))
-            print("read csv")
         else:
             if(len(self.tables) == 4):
                 for i in range(len(self.tables)):
@@ -188,7 +189,6 @@ class TimeTable():
             else:
                 for i in range(4):
                     self.tables.append(pd.read_csv("csv/{}.csv".format(i), index_col=0))
-                print("read html after csv")
 
         self.val74come_str = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.COME74]] for table in self.tables]
         self.val74go_str   = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.GO74]]   for table in self.tables]
