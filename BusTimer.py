@@ -175,7 +175,7 @@ class TimeTable():
         self.val74go_int   = []
 
         try:
-            self.tables = pd.read_html(self.URL, match='74号館前', na_values="-")
+            self.tables = pd.read_html(self.URL, match='やつかほ', na_values="-", header=2)
         except Exception as e:
             for i in range(4):
                 self.tables.append(pd.read_csv("csv/{}.csv".format(i), index_col=0))
