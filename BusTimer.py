@@ -1,15 +1,12 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[8]:
-
-
 import pandas   as pd
 import datetime as dt
 import tkinter  as tk
 import threading
 import enum
-
+import sys
 
 class Application(tk.Frame):
     def __init__(self, master = None):
@@ -25,10 +22,11 @@ class Application(tk.Frame):
         self.now = int(dt.datetime.now().strftime("%H%M"))
         self.timetable = TimeTable()
         self.status = 0
+        self.anm_status = True
         self.disp_go_msg = 0
         self.disp_come_msg = 0
 
-        self.f1 = tk.Frame(master, width=1280, height=165, bg=Color.GRAY2.value)
+        self.f1 = tk.Frame(master, width=1280, height=141, bg=Color.GRAY2.value)
         self.f1.pack()
         self.f1.pack_propagate(0)
         self.l11 = tk.Label(self.f1, text="出発", font=("Yu Gothic", 100), bg=Color.GRAY1.value, fg=Color.WHITE.value)
@@ -36,26 +34,26 @@ class Application(tk.Frame):
         self.l12 = tk.Label(self.f1, text="", font=("GN-キルゴUかなO", 88), fg=Color.ORANGE.value, bg=Color.GRAY2.value)
         self.l12.pack(fill=tk.BOTH, expand=True, anchor=tk.NW, side="left")
 
-        self.f2 = tk.Frame(master, width=1280, height=412)
+        self.f2 = tk.Frame(master, width=1280, height=446)
         self.f2.pack()
         self.f2.pack_propagate(0)
-        self.l21 = tk.Label(self.f2, text="00:00")
+        self.l21 = tk.Label(self.f2, text="--:--")
         self.l21.pack(fill=tk.NONE, expand=True)
-        self.l22 = tk.Label(self.f2, text="00:00")
+        self.l22 = tk.Label(self.f2, text="--:--")
         self.l22.pack(fill=tk.BOTH, expand=True)
 
-        self.f3 = tk.Frame(master, width=1280, height=165, bg=Color.GRAY2.value)
+        self.f3 = tk.Frame(master, width=1280, height=141, bg=Color.GRAY2.value)
         self.f3.pack()
         self.f3.pack_propagate(0)
         self.l31 = tk.Label(self.f3, text="到着", font=("Yu Gothic", 100), bg=Color.GRAY1.value, fg=Color.WHITE.value)
         self.l31.pack(fill=tk.Y, expand=True, anchor=tk.NW, side="left")
-        self.l32 = tk.Label(self.f3, text="", font=("GN-キルゴUかなO", 88), fg=Color.CYAN.value, bg=Color.GRAY2.value)
+        self.l32 = tk.Label(self.f3, text="", font=("GN-キルゴUかなO", 88), fg=Color.WHITE.value, bg=Color.GRAY2.value)
         self.l32.pack(fill=tk.BOTH, expand=True, anchor=tk.NW, side="left")
 
-        self.f4 = tk.Frame(master, width=1280, height=206)
+        self.f4 = tk.Frame(master, width=1280, height=220)
         self.f4.pack()
         self.f4.pack_propagate(0)
-        self.l4 = tk.Label(self.f4, text="00:00", fg=Color.CYAN.value)
+        self.l4 = tk.Label(self.f4, text="--:--", fg=Color.CYAN.value)
         self.l4.pack(fill=tk.BOTH, expand=True)
 
         self.f5 = tk.Frame(master, width=1280, height=82)
@@ -76,6 +74,7 @@ class Application(tk.Frame):
         def inner():
             self.timer.cancel()
             master.destroy()
+            sys.exit()
 
     def btn_changed(self, num):
         def inner():
@@ -83,65 +82,82 @@ class Application(tk.Frame):
             self.update_disp()
         return inner
 
+    def time2str(self, time):
+        if(self.anm_status):
+            msg = "{}:{}".format(str(time)[0:2], str(time)[2:4])
+        else:
+            msg = "{} {}".format(str(time)[0:2], str(time)[2:4])
+
+        return msg
+
+    def coming_soon(self, time, now, delta):
+        m = now%100
+        h = int(now/100)
+
+        if(m+delta >= 60):
+            over = int((m+delta)/60)
+            m = m+delta-60
+            h = h+1
+        else:
+            m = m+delta
+            h = h
+
+        added_time = h*100+m
+        return added_time>time
+
+
     def update_disp(self):
         self.now = int(dt.datetime.now().strftime("%H%M"))
-        self.tablelist_go   = [str(i) for i in self.timetable.val74go_int[self.status] if int(i) > self.now]
-        self.tablelist_come = [str(i) for i in self.timetable.val74come_int[self.status] if int(i) > self.now]
-#         tables_bool = self.timetable.tables_dt[self.status] > self.today
-#         tables_bool = tables_bool.values[:, self.timetable.INDEX74]
-#         tables_bool_come = tables_bool[:, 0]
-#         tables_bool_go   = tables_bool[:, 1]
-#         tables_74      = self.timetable.tables[self.status].values[:, self.timetable.INDEX74]
-#         tables_74_come = tables_74[:, 0]
-#         tables_74_come = tables_74_come[tables_bool_come]
-#         tables_74_go   = tables_74[:, 1]
-#         tables_74_go   = tables_74_go[tables_bool_go]
-#         tables_74dt    = self.timetable.tables_dt[self.status].values[:, self.timetable.INDEX74]
-#         tables_74dt_come = tables_74dt[:, 0]
-#         tables_74dt_come = tables_74dt_come[tables_bool_come]
-#         tables_74dt_go   = tables_74dt[:, 1]
-#         tables_74dt_go   = tables_74dt_go[tables_bool_go]
-#         come_msg = "まもなく到着します"
-#         go_msg = "まもなく出発します"
+        self.anm_status = not self.anm_status
+        self.tablelist_go   = [i for i in self.timetable.val74go_int[self.status] if int(i) > self.now]
+        self.tablelist_come = [i for i in self.timetable.val74come_int[self.status] if int(i) > self.now]
 
-#         if(len(tables_74_come) > 0):
-#             self.l4["text"] = tables_74_come[0]
-#             if(self.today+dt.timedelta(minutes=3)>pd.to_datetime(tables_74_come[0])):
-#                 self.l32["text"] = come_msg[0:self.disp_come_msg+1]
-#                 if(len(come_msg) > self.disp_come_msg):
-#                     self.disp_come_msg+=1
-#                 else:
-#                     self.disp_come_msg = 0
-#             else:
-#                 self.l32["text"] = ""
-#         else:
-#             self.l4["text"] = "--:--"
-#             self.l32["text"] = ""
+        come_msg = "まもなく到着します"
+        go_msg = "まもなく出発します"
+        margin = 34
 
-#         if(len(tables_74_go) == 0):
-#             self.l21["text"] = "サヨナラ！"
-#             self.l22["text"] = "アバーッ！"
-#             self.l12["text"] = ""
-#         else:
-#             if(self.today+dt.timedelta(minutes=5)>pd.to_datetime(tables_74_go[0])):
-#                 self.l12["text"] = go_msg[0:self.disp_go_msg+1]
-#                 if(len(go_msg) > self.disp_go_msg):
-#                     self.disp_go_msg+=1
-#                 else:
-#                     self.disp_go_msg = 0
-#             else:
-#                 self.l12["text"] = ""
+        if(len(self.tablelist_come) > 0):
+            nxt_come = self.tablelist_come[0]
+            self.l4["text"] = self.time2str(nxt_come)
+            if(self.coming_soon(nxt_come, self.now, 5)):
+                self.l32["text"] = " "*(margin-self.disp_come_msg)+come_msg+" "*self.disp_come_msg
+                if(self.disp_come_msg >= margin):
+                    self.disp_come_msg = 0
+                else:
+                    self.disp_come_msg += 1
+            else:
+                self.l32["text"] = ""
+        else:
+            self.l4["text"] = "--:--"
+            self.l32["text"] = ""
+            self.disp_come_msg = 0
 
-#             if(len(tables_74_go) == 1):
-#                 self.l21["text"] = tables_74_go[0]
-#                 self.l22["text"] = "次は最終バスです"
-#             else:
-#                 self.l21["text"] = tables_74_go[0]
-#                 self.l22["text"] = tables_74_go[1]
+        if(len(self.tablelist_go) == 0):
+            self.l21["text"] = "サヨナラ！"
+            self.l22["text"] = "アバーッ！"
+            self.l12["text"] = ""
+            self.disp_go_msg = 0
+        else:
+            if(self.coming_soon(nxt_come, self.now, 10)):
+                self.l12["text"] = " "*(margin-self.disp_go_msg)+go_msg+" "*self.disp_go_msg
+            else:
+                self.l12["text"] = ""
+
+            if(len(self.tablelist_go) == 1):
+                self.l21["text"] = self.time2str(self.tablelist_go[0])
+                self.l22["text"] = "次は最終バスです"
+            else:
+                self.l21["text"] = self.time2str(self.tablelist_go[0])
+                self.l22["text"] = self.time2str(self.tablelist_go[1])
+
+            if(self.disp_go_msg >= margin):
+                self.disp_go_msg = 0
+            else:
+                self.disp_go_msg += 1
 
     def start_timer(self):
         self.today = dt.datetime.today()
-        self.timer = threading.Timer(0.5, self.start_timer)
+        self.timer = threading.Timer(1, self.start_timer)
         self.update_disp()
         self.timer.start()
 
@@ -188,3 +204,4 @@ root = tk.Tk()
 app = Application(root)
 
 app.mainloop()
+
