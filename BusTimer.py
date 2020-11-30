@@ -188,7 +188,7 @@ class TimeTable():
             else:
                 for i in range(4):
                     self.tables.append(pd.read_csv("csv/{}.csv".format(i), index_col=0))
-                print("read html after csv")
+                print(len(self.tables))
 
         self.val74come_str = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.COME74]] for table in self.tables]
         self.val74go_str   = [[str(col).replace(":", "").replace("nan", "0") for col in table.values[:, self.GO74]]   for table in self.tables]
