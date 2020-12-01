@@ -7,7 +7,6 @@ import tkinter  as tk
 import threading
 import enum
 import sys
-import time
 
 class Application(tk.Frame):
     def __init__(self, master = None):
@@ -38,9 +37,9 @@ class Application(tk.Frame):
         self.f2 = tk.Frame(master, width=1280, height=446)
         self.f2.pack()
         self.f2.pack_propagate(0)
-        self.l21 = tk.Label(self.f2, text="--:--")
+        self.l21 = tk.Label(self.f2, text="発  --:--")
         self.l21.pack(fill=tk.NONE, expand=True)
-        self.l22 = tk.Label(self.f2, text="--:--")
+        self.l22 = tk.Label(self.f2, text="発  --:--")
         self.l22.pack(fill=tk.BOTH, expand=True)
 
         self.f3 = tk.Frame(master, width=1280, height=141, bg=Color.GRAY2.value)
@@ -54,7 +53,7 @@ class Application(tk.Frame):
         self.f4 = tk.Frame(master, width=1280, height=220)
         self.f4.pack()
         self.f4.pack_propagate(0)
-        self.l4 = tk.Label(self.f4, text="--:--", fg=Color.CYAN.value)
+        self.l4 = tk.Label(self.f4, text="着  --:--", fg=Color.CYAN.value)
         self.l4.pack(fill=tk.BOTH, expand=True)
 
         self.f5 = tk.Frame(master, width=1280, height=82)
@@ -80,14 +79,14 @@ class Application(tk.Frame):
     def btn_changed(self, num):
         def inner():
             self.status = num
-            self.update_disp()
         return inner
 
-    def time2str(self, time):
+    def time2str(self, time, keyword):
+        str_time = str(time).rjust(4, "0")
         if(self.anm_status):
-            msg = "{}:{}".format(str(time)[0:2], str(time)[2:4])
+            msg = "{}  {}:{}".format(keyword, str_time[0:2], str_time[2:4])
         else:
-            msg = "{} {}".format(str(time)[0:2], str(time)[2:4])
+            msg = "{}  {} {}".format(keyword, str_time[0:2], str_time[2:4])
         return msg
 
     def coming_soon(self, time, now, delta):
@@ -106,7 +105,6 @@ class Application(tk.Frame):
         return added_time>time
 
     def update_disp(self):
-        self.now = int(dt.datetime.now().strftime("%H%M"))
         self.anm_status = not self.anm_status
         self.tablelist_go   = [i for i in self.timetable.val74go_int[self.status] if int(i) > self.now]
         self.tablelist_come = [i for i in self.timetable.val74come_int[self.status] if int(i) > self.now]
@@ -115,10 +113,8 @@ class Application(tk.Frame):
         go_msg = "まもなく出発します"
         margin = 34
 
-        time.sleep(0.2)
-
         if(len(self.tablelist_come) > 0):
-            self.l4["text"] = self.time2str(self.tablelist_come[0])
+            self.l4["text"] = self.time2str(self.tablelist_come[0], "着")
             if(self.coming_soon(self.tablelist_come[0], self.now, 5)):
                 self.l32["text"] = " "*(margin-self.disp_come_msg)+come_msg+" "*self.disp_come_msg
                 if(self.disp_come_msg >= margin):
@@ -127,6 +123,7 @@ class Application(tk.Frame):
                     self.disp_come_msg += 1
             else:
                 self.l32["text"] = ""
+                self.disp_come_msg = 0
         else:
             self.l4["text"] = "--:--"
             self.l32["text"] = ""
@@ -138,25 +135,27 @@ class Application(tk.Frame):
             self.l12["text"] = ""
             self.disp_go_msg = 0
         else:
-            if(self.coming_soon(self.tablelist_come[0], self.now, 10)):
+            if(self.coming_soon(self.tablelist_go[0], self.now, 10)):
                 self.l12["text"] = " "*(margin-self.disp_go_msg)+go_msg+" "*self.disp_go_msg
+                if(self.disp_go_msg >= margin):
+                    self.disp_go_msg = 0
+                else:
+                    self.disp_go_msg += 1
             else:
                 self.l12["text"] = ""
+                self.disp_go_msg = 0
 
             if(len(self.tablelist_go) == 1):
-                self.l21["text"] = self.time2str(self.tablelist_go[0])
+                self.l21["text"] = self.time2str(self.tablelist_go[0], "発")
                 self.l22["text"] = "次は最終バスです"
             else:
-                self.l21["text"] = self.time2str(self.tablelist_go[0])
-                self.l22["text"] = self.time2str(self.tablelist_go[1])
+                self.l21["text"] = self.time2str(self.tablelist_go[0], "発")
+                self.l22["text"] = self.time2str(self.tablelist_go[1], "  ")
 
-            if(self.disp_go_msg >= margin):
-                self.disp_go_msg = 0
-            else:
-                self.disp_go_msg += 1
+
 
     def start_timer(self):
-        self.today = dt.datetime.today()
+        self.now = int(dt.datetime.now().strftime("%H%M"))
         self.timer = threading.Timer(1, self.start_timer)
         self.update_disp()
         self.timer.start()
